@@ -7,6 +7,7 @@ import json
 import re
 from urllib.parse import urlparse
 import time
+import xlwt
 
 
 class Scraper:
@@ -85,6 +86,31 @@ class Scraper:
                 writer.writeheader()
                 for item in data:
                     writer.writerow(item)
+        if extension == 'xls':
+            wb = xlwt.Workbook(encoding='utf-8')
+            ws = wb.add_sheet('data')
+
+            # Sheet header, first row
+            row_num = 0
+
+            font_style = xlwt.XFStyle()
+            font_style.font.bold = True
+
+            columns = list(data[0].keys())
+            print(columns)
+
+            for col_num in range(len(columns)):
+                ws.write(row_num, col_num, columns[col_num], font_style)
+
+            font_style = xlwt.XFStyle()
+
+            for row in data:
+                row_num += 1
+                row = list(row.values())
+                print(row)
+                for col_num in range(len(row)):
+                    ws.write(row_num, col_num, row[col_num], font_style)
+            wb.save(f'data.{extension}')
 
     async def run(self):
         async with aiohttp.ClientSession() as session:
@@ -106,6 +132,7 @@ class Scraper:
                 )
             await self.write_to('json', data)
             await self.write_to('csv', data)
+            await self.write_to('xls', data)
             print("Entire request took", time.time()-start_time, "seconds")
 
 if __name__ == '__main__':
